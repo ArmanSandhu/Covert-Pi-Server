@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"github.com/ArmanSandhu/CovertPi/internal/parsing"
+	"github.com/ArmanSandhu/CovertPi/internal/security"
 )
 
 const (
@@ -47,8 +48,11 @@ func handleInConn(conn net.Conn) {
 			break;
 		}
 		fmt.Printf("Read %d bytes\n", reqLen)
-		cmdString := string(buf)
-		fmt.Println("Incoming Command: ", cmdString)
+		encCmdString := string(buf)
+		fmt.Println("Incoming Enc String: ", encCmdString)
+		fmt.Println("Beginning Decryption!")
+		cmdString := security.Decrypt(encCmdString)
+		fmt.Println("Decrypted Cmd String: ", cmdString)
 		parsing.RunCommand(conn, cmdString)
 	}
 }

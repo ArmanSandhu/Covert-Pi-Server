@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"github.com/ArmanSandhu/CovertPi/internal/models"
 	"github.com/ArmanSandhu/CovertPi/internal/utils"
+	"github.com/ArmanSandhu/CovertPi/internal/security"
 )
 
 
@@ -73,6 +74,7 @@ func printOutput(stdout io.ReadCloser, conn net.Conn) {
 		fmt.Println("Error: ", err.Error())
 		return
 	}
-	conn.Write(jsonHosts)
+	cipherText := security.Encrypt(jsonHosts)
+	conn.Write([]byte(cipherText))
 	conn.Write([]byte("\n"))
 }
