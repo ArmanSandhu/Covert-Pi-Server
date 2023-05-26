@@ -26,4 +26,11 @@ func TestUnpad(t *testing.T) {
 	if !reflect.DeepEqual(result, expectedOutput) {
 		t.Errorf("Test case 3 failed. Expected: %v, go: %v", expectedOutput, result)
 	}
+
+	input = []byte{0x01, 0x02, 0x01}
+	expectedOutput = []byte{0x01, 0x02}
+	result = unpad(input)
+	if !reflect.DeepEqual(result, expectedOutput) {
+		t.Errorf("Test case 4 failed. Expected: %v, go: %v", expectedOutput, result)
+	}
 }
