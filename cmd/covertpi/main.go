@@ -7,5 +7,6 @@ import (
 
 func main() {
 	fmt.Println("Starting Server")
-	network.StartServer()	
+	listener := &network.Listener{ConnHost: "192.168.1.60", ConnPort: "8080", ConnType: "tcp"}
+	network.StartServer(listener)	
 }
