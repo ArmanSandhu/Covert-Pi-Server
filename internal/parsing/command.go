@@ -14,16 +14,19 @@ import (
 )
 
 
-func RunCommand(conn net.Conn, cmdString string) {
-	cmdSlices := strings.Fields(cmdString)
+func RunCommand(conn net.Conn, commandObj models.Cmd) {
+	cmdSlices := strings.Fields(commandObj.Command)
 	cmd := exec.Command(cmdSlices[0], cmdSlices[1])
 	stdout, _ := cmd.StdoutPipe()
-	cmd.Start()
-	go printOutput(stdout, conn)
-	cmd.Wait()
+	if commandObj.Tool == "nmap" {
+		fmt.Println("Running Nmap Command!")
+		cmd.Start()
+		go printNmapOutput(stdout, conn)
+		cmd.Wait()
+	}
 }
 
-func printOutput(stdout io.ReadCloser, conn net.Conn) {
+func printNmapOutput(stdout io.ReadCloser, conn net.Conn) {
 	var hosts []models.Host
 	var host *models.Host
 	var portFlag bool = false

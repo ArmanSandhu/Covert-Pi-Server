@@ -3,8 +3,10 @@ package network
 import (
 	"fmt"
 	"net"
+	"encoding/json"
 	"github.com/ArmanSandhu/CovertPi/internal/parsing"
 	"github.com/ArmanSandhu/CovertPi/internal/security"
+	"github.com/ArmanSandhu/CovertPi/internal/models"
 )
 
 var (
@@ -108,7 +110,14 @@ func handleInConn(conn net.Conn) {
 			fmt.Println("Beginning Decryption!")
 			cmdString := security.Decrypt(encCmdString)
 			fmt.Println("Decrypted Cmd String: ", cmdString)
-			parsing.RunCommand(conn, cmdString)
+
+			var command models.Cmd
+			err := json.Unmarshal([]byte(cmdString), &command)
+			if err != nil {
+				fmt.Println("Error Unmarshaling Cmd Obj: ", err)
+				return
+			}
+			parsing.RunCommand(conn, command)
 		}
 
 		if reqLen == 0 {
