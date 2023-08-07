@@ -7,4 +7,6 @@ type Host struct {
 	Latency string `json:"hostlatency"`
 	Ports []Port `json:"hostports"`
 	Mac string `json:"hostmac"`
+	Running string `json:"hostrunning"`
+	OSCPE string `json:"hostoscpe"`
 }
