@@ -11,7 +11,11 @@ import (
 
 var (
 	shutdownChannel = make(chan struct{})
+	stopRoutineChannel = make(chan struct{})
+	cancelManager models.CancelManager
 )
+
+
 
 type listenerInterface interface {
 	Accept() (net.Conn, error)
@@ -70,7 +74,9 @@ func StartServer(listen listenerInterface) (string, error) {
 	}
 	// Close listener when program finishes
 	defer listener.Close()
-	
+
+	cancelManager := models.NewCancelManager()
+
 	// Wait for incoming connections
 	for {
 		select {
@@ -84,16 +90,22 @@ func StartServer(listen listenerInterface) (string, error) {
 				fmt.Println("Error Accepting: ", err.Error())
 				return "Error", err
 			}
-			go handleInConn(conn)
+			go handleInConn(conn, cancelManager)
 		}
 	}
 }
 
 func StopServer() {
 	close(shutdownChannel)
+	close(stopRoutineChannel)
+	cancelManager.CancelMutex.Lock()
+	defer cancelManager.CancelMutex.Unlock()
+	for _, cancel := range cancelManager.CancelCommands {
+		close(cancel)
+	}
 }
 
-func handleInConn(conn net.Conn) {
+func handleInConn(conn net.Conn, cancelManager *models.CancelManager) {
 	defer conn.Close()
 	buf := make([]byte, 1024)
 	for {
@@ -117,7 +129,19 @@ func handleInConn(conn net.Conn) {
 				fmt.Println("Error Unmarshaling Cmd Obj: ", err)
 				return
 			}
-			parsing.RunCommand(conn, command)
+			if command.Command == "cancel" {
+				fmt.Println("Cancel Command Received!")
+				cancelManager.CancelMutex.Lock()
+				cancel, found := cancelManager.CancelCommands[command.Tool]
+				if found {
+					close(cancel)
+					delete(cancelManager.CancelCommands, command.Tool)
+				}
+				cancelManager.CancelMutex.Unlock()
+				conn.Close()
+			} else {
+				parsing.RunCommand(conn, command, stopRoutineChannel, cancelManager)
+			}
 		}
 
 		if reqLen == 0 {

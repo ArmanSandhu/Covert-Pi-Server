@@ -67,3 +67,25 @@ func TestRegSplit(t *testing.T) {
 		t.Errorf("Test case 3 failed. Expected: %v, go: %v", expectedOutput, result)
 	}
 }
+
+func TestGetWifiInterfaces(t *testing.T) {
+	// Test Case 1
+	expectedOutput := make(map[string]string)
+	expectedOutput["wlan1"] = "bcm2835-mmc"
+	expectedOutput["wlan0"] = "Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band 2.4/5Ghz]"
+	result := GetWifiInterfaces()
+	if !reflect.DeepEqual(result, expectedOutput) {
+		t.Errorf("Test case 1 failed. Expected: %v, Got: %v", expectedOutput, result)
+	}
+}
+
+func TestGetWifiInterfacesMode(t *testing.T) {
+	// Test Case 1
+	expectedOutput := make(map[string]string)
+	expectedOutput["wlan0"] = "Managed"
+	expectedOutput["wlan1"] = "Managed"
+	result := GetWifiInterfacesMode()
+	if !reflect.DeepEqual(result, expectedOutput) {
+		t.Errorf("Test case 1 failed. Expected: %v, Got: %v", expectedOutput, result)
+	}
+}
