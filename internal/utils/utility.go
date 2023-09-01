@@ -5,6 +5,8 @@ import (
 	"os/exec"
 	"fmt"
 	"strings"
+	"os"
+	"path/filepath"
 )
 
 func RegSplit(text string, delim string) []string {
@@ -60,4 +62,33 @@ func GetWifiInterfacesMode() map[string]string {
 	}
 
 	return modes
+}
+
+func RenameCaptureFiles(filename string, directory string, pattern string) error {
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		fmt.Println("Error in Reading Directory!")
+		return err
+	}
+
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), filename) {
+			fullSrcPath := filepath.Join(directory, file.Name())
+			newDestPath := filepath.Join(directory, removePatternFromCaptureFiles(file.Name(), pattern))
+			err := os.Rename(fullSrcPath, newDestPath)
+			if err != nil {
+				fmt.Println("Error Renaming File!")
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func removePatternFromCaptureFiles(filename string, pattern string) string {
+	baseFileName := strings.TrimSuffix(filename, filepath.Ext(filename))
+	fileNameWOPattern := strings.TrimSuffix(baseFileName, pattern)
+	newFileName := fileNameWOPattern + filepath.Ext(filename)
+	return newFileName
 }
