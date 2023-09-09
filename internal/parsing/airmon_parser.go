@@ -36,7 +36,7 @@ func GetAirmonInterfaces(output string) models.Airmon_Result {
 	return airmonResult
 }
 
-func CheckAirmon(output string) map[string]string {
+func CheckAirmon(output string) models.Airmon_Result {
 	processes := make(map[string]string)
 	processFlag := false
 	lines := strings.Split(output, "\n")
@@ -53,8 +53,15 @@ func CheckAirmon(output string) map[string]string {
 			}
 		}
 	}
+
+	airmonResult := models.Airmon_Result{
+		Airmon_Interfaces: []models.Airmon_Interface{},
+        Details: "success",
+        Result: "n/a",
+		PIDS: processes,
+	}
 	
-	return processes
+	return airmonResult
 }
 
 func StartStopAirmon(output string) models.Airmon_Result {

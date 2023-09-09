@@ -33,9 +33,9 @@ func TestCheckAirmon(t *testing.T) {
 		t.Errorf("Test case 1 failed. Error: %s", err.Error())
 	}
 	expectedKeys := []string{"dhclient", "NetworkManager", "wpa_supplicant"}
-	resultMap := CheckAirmon(string(cmdOut))
-	result := make([]string, 0, len(resultMap))
-	for key := range resultMap {
+	airmonResult := CheckAirmon(string(cmdOut))
+	result := make([]string, 0, len(airmonResult.PIDS))
+	for key := range airmonResult.PIDS {
 		result = append(result, key)
 	}
 	sort.Strings(expectedKeys)
