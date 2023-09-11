@@ -56,8 +56,8 @@ func CheckAirmon(output string) models.Airmon_Result {
 
 	airmonResult := models.Airmon_Result{
 		Airmon_Interfaces: []models.Airmon_Interface{},
-        Details: "success",
-        Result: "n/a",
+        Details: "n/a",
+        Result: "success",
 		PIDS: processes,
 	}
 	
