@@ -3,6 +3,7 @@ package utils
 import (
 	"reflect"
 	"testing"
+	"os"
 )
 
 func TestTrimSlice(t *testing.T) {
@@ -65,5 +66,61 @@ func TestRegSplit(t *testing.T) {
 	result = RegSplit(input, delim)
 	if !reflect.DeepEqual(result, expectedOutput) {
 		t.Errorf("Test case 3 failed. Expected: %v, go: %v", expectedOutput, result)
+	}
+}
+
+func TestGetWifiInterfacesMode(t *testing.T) {
+	// Test Case 1
+	expectedOutput := make(map[string]string)
+	expectedOutput["wlan0"] = "Managed"
+	expectedOutput["wlan1"] = "Managed"
+	result := GetWifiInterfacesMode()
+	if !reflect.DeepEqual(result, expectedOutput) {
+		t.Errorf("Test case 1 failed. Expected: %v, Got: %v", expectedOutput, result)
+	}
+}
+
+func TestRenameCaptureFiles(t *testing.T) {
+	// Test Case 1
+	directory := "/home/kali/Desktop/Airodump_Captures/"
+	fileName := "test"
+	fileNameWPattern := "test-01.txt"
+	finalFile := "test.txt"
+	pattern := "-01"
+	foundFileFlag := false
+
+	_, err := os.Create(directory + fileNameWPattern)
+	if err != nil {
+		t.Errorf("Test Case 1 failed. Error creating Test File: %v", err)
+		return
+	}
+
+	err = RenameCaptureFiles(fileName, directory, pattern)
+	if err != nil {
+		t.Errorf("Test Case 1 failed. Error recieved: %v", err)
+		return
+	}
+
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		t.Errorf("Test Case 1 failed. Error reading Directory: %v", err)
+		return
+	}
+
+	for _, file := range files {
+		if file.Name() == finalFile {
+			foundFileFlag = true
+		}
+	}
+
+	if !foundFileFlag {
+		t.Errorf("Test Case 1 failed. Test File Not Renamed Correctly: %v", err)
+		return
+	}
+
+	err = os.Remove(directory + finalFile)
+	if err != nil {
+		t.Errorf("Test Case 1 failed. Error deleting Test File: %v", err)
+		return
 	}
 }

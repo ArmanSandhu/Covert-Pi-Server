@@ -1,6 +1,13 @@
 package utils
 
-import "regexp"
+import (
+	"regexp"
+	"os/exec"
+	"fmt"
+	"strings"
+	"os"
+	"path/filepath"
+)
 
 func RegSplit(text string, delim string) []string {
 	reg := regexp.MustCompile(delim)
@@ -23,4 +30,65 @@ func TrimSlice(slices []string) []string {
 		}
 	}
 	return results
+}
+
+func GetWifiInterfacesMode() map[string]string {
+	modes := make(map[string]string)
+	cmd, err := exec.Command("iwconfig").Output()
+	if err != nil {
+		fmt.Println("Error: ", err.Error())
+		return modes
+	}
+	output := string(cmd)
+	regex := regexp.MustCompile(`\s+`)
+	lines := strings.Split(string(output), "\n")
+	wlan := ""
+	mode := ""
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			line = regex.ReplaceAllString(line, " ")
+			split := strings.Split(line, " ")
+			if strings.Contains(split[0], "wl") {
+				wlan = split[0]
+			}
+			if strings.Contains(split[0], "Mode") {
+				parts := strings.SplitN(split[0], ":", 2)
+				mode = parts[1]
+				modes[wlan] = mode
+			}
+		}
+		
+	}
+
+	return modes
+}
+
+func RenameCaptureFiles(filename string, directory string, pattern string) error {
+	files, err := os.ReadDir(directory)
+	if err != nil {
+		fmt.Println("Error in Reading Directory!")
+		return err
+	}
+
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), filename) {
+			fullSrcPath := filepath.Join(directory, file.Name())
+			newDestPath := filepath.Join(directory, removePatternFromCaptureFiles(file.Name(), pattern))
+			err := os.Rename(fullSrcPath, newDestPath)
+			if err != nil {
+				fmt.Println("Error Renaming File!")
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func removePatternFromCaptureFiles(filename string, pattern string) string {
+	baseFileName := strings.TrimSuffix(filename, filepath.Ext(filename))
+	fileNameWOPattern := strings.TrimSuffix(baseFileName, pattern)
+	newFileName := fileNameWOPattern + filepath.Ext(filename)
+	return newFileName
 }
