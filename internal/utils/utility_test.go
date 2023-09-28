@@ -124,3 +124,19 @@ func TestRenameCaptureFiles(t *testing.T) {
 		return
 	}
 }
+
+func TestSplitPathandFileName(t *testing.T) {
+	// Test Case 1
+	fullFilePath := "/home/kali/Desktop/Airodump_Captures/invalid_file.txt"
+	expectedDir := "/home/kali/Desktop/Airodump_Captures"
+	expectedFileName := "invalid_file"
+	resultDir, resultFileName := SplitPathandFileName(fullFilePath)
+	if resultDir != expectedDir {
+		t.Errorf("Test case 1 failed. Expected Dir: %v, Got: %v", expectedDir, resultDir)
+		return
+	}
+	if expectedFileName != resultFileName {
+		t.Errorf("Test case 1 failed. Expected File: %v, Got: %v", expectedFileName, resultFileName)
+		return
+	}
+}

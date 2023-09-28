@@ -92,3 +92,11 @@ func removePatternFromCaptureFiles(filename string, pattern string) string {
 	newFileName := fileNameWOPattern + filepath.Ext(filename)
 	return newFileName
 }
+
+func SplitPathandFileName(fullFilePath string) (string, string) {
+	directory := filepath.Dir(fullFilePath)
+	fileName := filepath.Base(fullFilePath)
+	ext := filepath.Ext(fileName)
+	fileNameWOExt := fileName[:len(fileName) - len(ext)]
+	return directory, fileNameWOExt
+}
