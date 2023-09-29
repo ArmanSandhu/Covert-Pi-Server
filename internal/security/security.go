@@ -1,80 +1,63 @@
 package security
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/base64"
-	"math/rand"
-	"time"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
+	"io/ioutil"
 	"fmt"
 )
 
-const (
-	SecretKey = "Th!s!5aS3cre+K3y"
-)
+func LoadTLSCertificate(serverCertFile, serverKeyFile string) (*x509.Certificate, *rsa.PrivateKey, error) {
 
+	var key *rsa.PrivateKey
 
-func Encrypt(jsonString []byte) string {
-	// Generate IV
-	iv := make([]byte, aes.BlockSize)
-	rand.Seed(time.Now().UnixNano())
-	rand.Read(iv)
-
-	// Create AES cipher
-	block, err := aes.NewCipher([]byte(SecretKey))
+	// Load the server's certificate
+	certPem, err := ioutil.ReadFile(serverCertFile)
 	if err != nil {
-		fmt.Println("Error Creating Cipher: ", err.Error())
-		panic(err)
+		fmt.Println("There was an error loading the Server Cert File!")
+		return nil, nil, err
 	}
 
-	mode := cipher.NewCBCEncrypter(block, iv)
-
-	paddedString := pad(jsonString, aes.BlockSize)
-	
-	ciphertext := make([]byte, aes.BlockSize + len(paddedString))
-	copy(ciphertext[:aes.BlockSize], iv)
-	mode.CryptBlocks(ciphertext[aes.BlockSize:], paddedString)
-	encodedCipherText := base64.StdEncoding.EncodeToString(ciphertext)
-
-	fmt.Printf("Encoded CipherText: %s\n", encodedCipherText)
-	return encodedCipherText
-}
-
-func Decrypt(encCmdString string) string {
-	decodedCipherText, err := base64.StdEncoding.DecodeString(encCmdString)
+	// Load the server's private key
+	keyPem, err := ioutil.ReadFile(serverKeyFile)
 	if err != nil {
-		fmt.Println("Error Decrypting encrypted Cmd String: ", err.Error())
-		panic(err)
+		fmt.Println("There was an error loading the Server Key File!")
+		return nil, nil, err
 	}
 
-	extractedIV := decodedCipherText[:aes.BlockSize]
-	block, err := aes.NewCipher([]byte(SecretKey))
+	// Decode and Parse the server certificate
+	block, _ := pem.Decode(certPem)
+	if block == nil {
+		return nil, nil, errors.New("There was an error decoding the Server Cert File!")
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
 	if err != nil {
-		fmt.Println("Error Creating Cipher: ", err.Error())
-		panic(err)
+		fmt.Println("There was an error parsing the Server Cert File!")
+		return nil, nil, err
 	}
-	
-	mode := cipher.NewCBCDecrypter(block, extractedIV)
 
-	plnTxt := make([]byte, len(decodedCipherText) - aes.BlockSize)
-	mode.CryptBlocks(plnTxt, decodedCipherText[aes.BlockSize:])
-	plnTxt = unpad(plnTxt)
-	decryptedString := string(plnTxt)
-	fmt.Println("Decrypted String: ", decryptedString)
-	return decryptedString
-}
-
-func pad(plaintext []byte, blockSize int) []byte {
-	padding := blockSize - len(plaintext) % blockSize
-	paddedPlnTxt := make([]byte, len(plaintext) + padding)
-	copy(paddedPlnTxt, plaintext)
-	for i := len(plaintext); i < len(paddedPlnTxt); i++ {
-		paddedPlnTxt[i] = byte(padding)
+	// Decode and Parse the server key
+	block, _ = pem.Decode(keyPem)
+	if block == nil {
+		return nil, nil, errors.New("There was an error decoding the Server Key File!")
 	}
-	return paddedPlnTxt
-}
+	if block.Type == "PRIVATE KEY" {
+		parsedKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			fmt.Println("There was an error parsing the Server Key File!")
+			return nil, nil, err
+		}
+		
+		rsaKey, ok := parsedKey.(*rsa.PrivateKey)
+		if !ok {
+			return nil, nil, errors.New("Failed to convert loaded key into a RSA Private Key!")
+		}
+		key = rsaKey
+	} else {
+		return nil, nil, errors.New("Unsupported Key Type Found!")
+	}
 
-func unpad(paddedPlnTxt []byte) []byte {
-	padding := int(paddedPlnTxt[len(paddedPlnTxt) - 1])
-	return paddedPlnTxt[:len(paddedPlnTxt) - padding]
+	return cert, key, nil
 }

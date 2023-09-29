@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"encoding/json"
+	"crypto/tls"
+	"os"
 	"github.com/ArmanSandhu/CovertPi/internal/parsing"
 	"github.com/ArmanSandhu/CovertPi/internal/security"
 	"github.com/ArmanSandhu/CovertPi/internal/models"
@@ -13,6 +15,8 @@ var (
 	shutdownChannel = make(chan struct{})
 	stopRoutineChannel = make(chan struct{})
 	cancelManager models.CancelManager
+	ServerCertFile = "/home/kali/Desktop/CovertPiKey/server.crt"
+	ServerKeyFile = "/home/kali/Desktop/CovertPiKey/server.key"
 )
 
 
@@ -29,6 +33,7 @@ type Listener struct {
 	ConnPort string
 	ConnType string
 	Listener net.Listener
+	TLSConfig *tls.Config
 }
 
 func (l *Listener) Listen() (net.Listener, error) {
@@ -57,7 +62,34 @@ func (l *Listener) Accept() (net.Conn, error) {
 	return conn, nil
 }
 
-func StartServer(listen listenerInterface) (string, error) {
+func StartServer(listen *Listener) (string, error) {
+	// Load the SSL certificate and private key
+	cert, key, err := security.LoadTLSCertificate(ServerCertFile, ServerKeyFile)
+	if err != nil {
+		fmt.Println("There was an error loading the server's TLS Config! Error: ", err)
+		os.Exit(1)
+	}
+
+	// // Create a TLS configuration with the certificate and key
+	tlsCert := tls.Certificate{
+		Certificate: [][]byte{cert.Raw},
+		PrivateKey:  key,
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+	}
+
+	//Listen for incoming connection
+	tlsListener, err:= tls.Listen(listen.ConnType, listen.ConnHost+":"+listen.ConnPort, tlsConfig)
+	if err != nil {
+		fmt.Println("Error Listening: ", err.Error())
+		return "Error", err
+	}
+	listen.Listener = tlsListener
+	// Close listener when program finishes
+	defer tlsListener.Close()
+
 	// Start a routine to watch for a shutdown signal
 	go func() {
 		// Wait for a shutdown signal
@@ -66,14 +98,7 @@ func StartServer(listen listenerInterface) (string, error) {
 		StopServer()
 	}()
 
-	//Listen for incoming connection
-	listener, err := listen.Listen()
-	if err != nil {
-		fmt.Println("Error Listening: ", err.Error())
-		return "Error", err
-	}
-	// Close listener when program finishes
-	defer listener.Close()
+	fmt.Println("TLS Server is listening on " + listen.ConnHost + ":" + listen.ConnPort)
 
 	cancelManager := models.NewCancelManager()
 
@@ -85,7 +110,7 @@ func StartServer(listen listenerInterface) (string, error) {
 			fmt.Println("Server Stopped!")
 			return "Stop", nil
 		default:
-			conn, err := listener.Accept()
+			conn, err := tlsListener.Accept()
 			if err != nil {
 				fmt.Println("Error Accepting: ", err.Error())
 				return "Error", err
@@ -117,11 +142,8 @@ func handleInConn(conn net.Conn, cancelManager *models.CancelManager) {
 		if reqLen > 0 {
 			buf = buf[:reqLen]
 			fmt.Printf("Read %d bytes\n", reqLen)
-			encCmdString := string(buf)
-			fmt.Println("Incoming Enc String: ", encCmdString)
-			fmt.Println("Beginning Decryption!")
-			cmdString := security.Decrypt(encCmdString)
-			fmt.Println("Decrypted Cmd String: ", cmdString)
+			cmdString := string(buf)
+			fmt.Println("Recieved Cmd String: ", cmdString)
 
 			var command models.Cmd
 			err := json.Unmarshal([]byte(cmdString), &command)

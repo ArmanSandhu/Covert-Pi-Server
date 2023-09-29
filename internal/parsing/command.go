@@ -9,7 +9,6 @@ import (
 	"strings"
 	"encoding/json"
 	"github.com/ArmanSandhu/CovertPi/internal/models"
-	"github.com/ArmanSandhu/CovertPi/internal/security"
 	"github.com/ArmanSandhu/CovertPi/internal/utils"
 )
 
@@ -85,8 +84,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			return
 		}
 		
-		cipherText := security.Encrypt(jsonRes)
-		conn.Write([]byte(cipherText))
+		conn.Write(jsonRes)
 		conn.Write([]byte("\n"))
 		conn.Close()
 		return
@@ -131,8 +129,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			return
 		}
 		
-		cipherText := security.Encrypt(jsonRes)
-		conn.Write([]byte(cipherText))
+		conn.Write(jsonRes)
 		conn.Write([]byte("\n"))
 		conn.Close()
 		return
@@ -168,8 +165,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			return
 		}
 		
-		cipherText := security.Encrypt(jsonRes)
-		conn.Write([]byte(cipherText))
+		conn.Write(jsonRes)
 		conn.Write([]byte("\n"))
 		conn.Close()
 		return
@@ -215,8 +211,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			return
 		}
 		
-		cipherText := security.Encrypt(jsonRes)
-		conn.Write([]byte(cipherText))
+		conn.Write(jsonRes)
 		conn.Write([]byte("\n"))
 		conn.Close()
 		return
