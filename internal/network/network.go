@@ -15,8 +15,6 @@ var (
 	shutdownChannel = make(chan struct{})
 	stopRoutineChannel = make(chan struct{})
 	cancelManager models.CancelManager
-	ServerCertFile = "/home/kali/Desktop/CovertPiKey/server.crt"
-	ServerKeyFile = "/home/kali/Desktop/CovertPiKey/server.key"
 )
 
 
@@ -62,9 +60,9 @@ func (l *Listener) Accept() (net.Conn, error) {
 	return conn, nil
 }
 
-func StartServer(listen *Listener) (string, error) {
+func StartServer(listen *Listener, serverKeyFilePath string, serverCertFilePath string, captureDir string) (string, error) {
 	// Load the SSL certificate and private key
-	cert, key, err := security.LoadTLSCertificate(ServerCertFile, ServerKeyFile)
+	cert, key, err := security.LoadTLSCertificate(serverCertFilePath, serverKeyFilePath)
 	if err != nil {
 		fmt.Println("There was an error loading the server's TLS Config! Error: ", err)
 		os.Exit(1)
@@ -115,7 +113,7 @@ func StartServer(listen *Listener) (string, error) {
 				fmt.Println("Error Accepting: ", err.Error())
 				return "Error", err
 			}
-			go handleInConn(conn, cancelManager)
+			go handleInConn(conn, cancelManager, captureDir)
 		}
 	}
 }
@@ -130,7 +128,7 @@ func StopServer() {
 	}
 }
 
-func handleInConn(conn net.Conn, cancelManager *models.CancelManager) {
+func handleInConn(conn net.Conn, cancelManager *models.CancelManager, captureDir string) {
 	defer conn.Close()
 	buf := make([]byte, 1024)
 	for {
@@ -162,7 +160,7 @@ func handleInConn(conn net.Conn, cancelManager *models.CancelManager) {
 				cancelManager.CancelMutex.Unlock()
 				conn.Close()
 			} else {
-				parsing.RunCommand(conn, command, stopRoutineChannel, cancelManager)
+				parsing.RunCommand(conn, command, stopRoutineChannel, cancelManager, captureDir)
 			}
 		}
 

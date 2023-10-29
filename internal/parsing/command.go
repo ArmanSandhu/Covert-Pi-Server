@@ -13,7 +13,7 @@ import (
 )
 
 
-func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan struct{}, cancelManager *models.CancelManager) {
+func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan struct{}, cancelManager *models.CancelManager, captureDir string) {
 	stopSignalChan := make(chan struct{})
 	cancelFunc := make(chan struct{})
 	cancelManager.CancelMutex.Lock()
@@ -71,7 +71,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			fmt.Println("Stopping Airmon Wlan")
 			airmonResult = StartStopAirmon(string(cmdOut))
 			fmt.Println(airmonResult)
-			utils.resetRaspberryPiWifiAdapter()
+			utils.ResetRaspberryPiWifiAdapter()
 		default:
 			fmt.Println("Getting Wifi Interfaces!")
 			airmonResult = GetAirmonInterfaces(string(cmdOut))
@@ -92,7 +92,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 	}
 	if commandObj.Tool == "airodump" {
 		fmt.Println("Running Airodump Command!")
-		directory := "/home/kali/Desktop/Airodump_Captures/"
+		directory := captureDir
 		pattern := "-01"
 		var jsonRes []byte
 		airodumpResult := models.Airodump_Result{}
