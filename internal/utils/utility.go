@@ -100,3 +100,21 @@ func SplitPathandFileName(fullFilePath string) (string, string) {
 	fileNameWOExt := fileName[:len(fileName) - len(ext)]
 	return directory, fileNameWOExt
 }
+
+func resetRaspberryPiWifiAdapter() {
+	unloadCmd := exec.Command("rmmod", "brcmfmac")
+	err := unloadCmd.Run()
+	if err != nil {
+		fmt.Println("There was an error while unloading the Raspberry Pi's driver: %v", err)
+		return
+	}
+
+	loadCmd := exec.Command("modprobe", "brcmfmac")
+	err = loadCmd.Run()
+	if err != nil {
+		fmt.Println("There was an error while loading the Raspberry Pi's driver: %v", err)
+		return
+	}
+
+	fmt.Println("Raspberry Pi 4 driver reset!")
+}

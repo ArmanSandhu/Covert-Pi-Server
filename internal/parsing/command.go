@@ -71,6 +71,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			fmt.Println("Stopping Airmon Wlan")
 			airmonResult = StartStopAirmon(string(cmdOut))
 			fmt.Println(airmonResult)
+			utils.resetRaspberryPiWifiAdapter()
 		default:
 			fmt.Println("Getting Wifi Interfaces!")
 			airmonResult = GetAirmonInterfaces(string(cmdOut))
