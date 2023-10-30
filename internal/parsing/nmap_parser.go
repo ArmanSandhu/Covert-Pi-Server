@@ -11,7 +11,7 @@ import (
 	"github.com/ArmanSandhu/CovertPi/internal/utils"
 )
 
-func PrintNmapOutput(stdout io.ReadCloser, conn net.Conn, stopSignalChan, stopRoutineChannel chan struct{}) {
+func PrintNmapOutput(stdout io.ReadCloser, conn net.Conn, stopSignalChan, stopRoutineChannel chan struct{}, pingScanFlag bool) {
 	var hosts []models.Host
 	var host *models.Host
 	var payload models.Nmap_Payload
@@ -43,16 +43,24 @@ func PrintNmapOutput(stdout io.ReadCloser, conn net.Conn, stopSignalChan, stopRo
 				if strings.Contains(text, "Host is") {
 					fmt.Println("Host Status")
 					host.Status = split[2]
-					host.Latency = split[3]
+					if len(split) > 3 {
+						host.Latency = split[3]
+					} 
 					continue
 				}
 				if len(split) == 3 && split[0] == "PORT" {
+					fmt.Println("Host Port Found")
 					portFlag = true
 					continue
 				}
 				if strings.Contains(text, "MAC Address") {
+					fmt.Println("Host MAC Address")
 					host.Mac = split[2]
 					portFlag = false
+					if (pingScanFlag) {
+						fmt.Println("Adding Host")
+						hosts = append(hosts, *host)
+					}
 					continue
 				}
 				if portFlag && len(split) > 0 {

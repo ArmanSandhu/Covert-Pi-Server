@@ -46,7 +46,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 		fmt.Println("Running Nmap Command!")
 		stdout, _ := cmd.StdoutPipe()
 		cmd.Start()
-		go PrintNmapOutput(stdout, conn, stopSignalChan, stopRoutineChannel)
+		go PrintNmapOutput(stdout, conn, stopSignalChan, stopRoutineChannel, args[0] == "-sn")
 		cmd.Wait()
 	}
 	if commandObj.Tool == "airmon" {
