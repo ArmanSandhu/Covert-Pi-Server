@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"github.com/ArmanSandhu/CovertPi/internal/models"
 	"github.com/ArmanSandhu/CovertPi/internal/utils"
-	"github.com/ArmanSandhu/CovertPi/internal/security"
 )
 
 func PrintNmapOutput(stdout io.ReadCloser, conn net.Conn, stopSignalChan, stopRoutineChannel chan struct{}) {
@@ -99,8 +98,7 @@ func PrintNmapOutput(stdout io.ReadCloser, conn net.Conn, stopSignalChan, stopRo
 			fmt.Println("Error: ", err.Error())
 			return
 		}
-		cipherText := security.Encrypt(nmap_payload)
-		conn.Write([]byte(cipherText))
+		conn.Write(nmap_payload)
 		conn.Write([]byte("\n"))
 		fmt.Println("End of Nmap Parse Function")
 		conn.Close()

@@ -74,7 +74,17 @@ func (mc *mockConnection) SetWriteDeadline(t time.Time) error {
 }
 
 func TestStartServer(t *testing.T) {
-	listener := &mockListener{}
+	mockListener := &mockListener{
+		ConnHost: "192.168.1.60",
+		ConnPort: "8037",
+		ConnType: "tcp",
+	}
+
+	listener := &Listener{
+		ConnHost: mockListener.ConnHost,
+		ConnPort: mockListener.ConnPort,
+		ConnType: mockListener.ConnType,
+	}
 	
 	var err error
 	var actualOutput string
@@ -83,7 +93,7 @@ func TestStartServer(t *testing.T) {
 
 	go func() {
 		defer wg.Done()
-		actualOutput, err = StartServer(listener)
+		actualOutput, err = StartServer(listener, "/home/kali/Desktop/CovertPiKey/server.key", "/home/kali/Desktop/CovertPiKey/server.crt", "")
 	}()
 
 	time.Sleep(time.Millisecond)

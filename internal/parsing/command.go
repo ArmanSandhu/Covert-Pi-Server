@@ -9,12 +9,11 @@ import (
 	"strings"
 	"encoding/json"
 	"github.com/ArmanSandhu/CovertPi/internal/models"
-	"github.com/ArmanSandhu/CovertPi/internal/security"
 	"github.com/ArmanSandhu/CovertPi/internal/utils"
 )
 
 
-func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan struct{}, cancelManager *models.CancelManager) {
+func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan struct{}, cancelManager *models.CancelManager, captureDir string) {
 	stopSignalChan := make(chan struct{})
 	cancelFunc := make(chan struct{})
 	cancelManager.CancelMutex.Lock()
@@ -72,6 +71,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			fmt.Println("Stopping Airmon Wlan")
 			airmonResult = StartStopAirmon(string(cmdOut))
 			fmt.Println(airmonResult)
+			utils.ResetRaspberryPiWifiAdapter()
 		default:
 			fmt.Println("Getting Wifi Interfaces!")
 			airmonResult = GetAirmonInterfaces(string(cmdOut))
@@ -85,15 +85,14 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			return
 		}
 		
-		cipherText := security.Encrypt(jsonRes)
-		conn.Write([]byte(cipherText))
+		conn.Write(jsonRes)
 		conn.Write([]byte("\n"))
 		conn.Close()
 		return
 	}
 	if commandObj.Tool == "airodump" {
 		fmt.Println("Running Airodump Command!")
-		directory := "/home/kali/Desktop/Airodump_Captures/"
+		directory := captureDir
 		pattern := "-01"
 		var jsonRes []byte
 		airodumpResult := models.Airodump_Result{}
@@ -131,8 +130,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			return
 		}
 		
-		cipherText := security.Encrypt(jsonRes)
-		conn.Write([]byte(cipherText))
+		conn.Write(jsonRes)
 		conn.Write([]byte("\n"))
 		conn.Close()
 		return
@@ -168,8 +166,53 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			return
 		}
 		
-		cipherText := security.Encrypt(jsonRes)
-		conn.Write([]byte(cipherText))
+		conn.Write(jsonRes)
+		conn.Write([]byte("\n"))
+		conn.Close()
+		return
+	}
+	if commandObj.Tool == "john" {
+		johnResult := models.John_Result{}
+		var jsonRes []byte
+
+		if strings.Contains(commandObj.Command, "GetCrackedPasswords") {
+			directory := cmdSlices[2]
+			fmt.Println("Get Previously Cracked Passwords in Directory: %s", directory)
+			crckdPswds, details, err := GetAllCrckdPswdInDir(directory)
+			if err != nil {
+				johnResult.Result = "fail"
+				johnResult.Details = details
+				johnResult.Error = err.Error()
+			} else {
+				johnResult.Result = "success"
+				johnResult.Details = details
+				johnResult.Passwords = crckdPswds
+			}
+		} else if strings.Contains(commandObj.Command, "GetAvailableFilesForCracking") {
+			directory := cmdSlices[2]
+			fmt.Println("Get Available Files for Cracking in Directory: %s", directory)
+			availableFiles, err := utils.GetAvailableFilesForCracking(directory)
+			if err != nil {
+				johnResult.Result = "fail"
+				johnResult.Details = "There was an error in retrieving files from specified directory!"
+				johnResult.Error = err.Error()
+			} else {
+				johnResult.Result = "success"
+				johnResult.AvailableFiles = availableFiles
+			}
+		} else {
+			fmt.Println("Running John Command!")
+			RunJohnCommand(cmdSlices, &johnResult)
+		}
+
+		jsonRes, err := json.Marshal(johnResult)
+		if err != nil {
+			fmt.Println("Error: ", err.Error())
+			conn.Close()
+			return
+		}
+		
+		conn.Write(jsonRes)
 		conn.Write([]byte("\n"))
 		conn.Close()
 		return

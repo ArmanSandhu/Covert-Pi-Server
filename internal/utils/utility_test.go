@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 	"os"
+	"github.com/ArmanSandhu/CovertPi/internal/models"
 )
 
 func TestTrimSlice(t *testing.T) {
@@ -121,6 +122,91 @@ func TestRenameCaptureFiles(t *testing.T) {
 	err = os.Remove(directory + finalFile)
 	if err != nil {
 		t.Errorf("Test Case 1 failed. Error deleting Test File: %v", err)
+		return
+	}
+}
+
+func TestSplitPathandFileName(t *testing.T) {
+	// Test Case 1
+	fullFilePath := "/home/kali/Desktop/Airodump_Captures/invalid_file.txt"
+	expectedDir := "/home/kali/Desktop/Airodump_Captures"
+	expectedFileName := "invalid_file"
+	resultDir, resultFileName := SplitPathandFileName(fullFilePath)
+	if resultDir != expectedDir {
+		t.Errorf("Test case 1 failed. Expected Dir: %v, Got: %v", expectedDir, resultDir)
+		return
+	}
+	if expectedFileName != resultFileName {
+		t.Errorf("Test case 1 failed. Expected File: %v, Got: %v", expectedFileName, resultFileName)
+		return
+	}
+}
+
+func TestReadValidConfigFile(t *testing.T) {
+	// Test Case 1
+	confFilePath := "/home/kali/Desktop/CovertPiServerDetails/covertpi.conf"
+
+	expectedCovertPiConfig := &models.Covert_Pi_Config{
+		HostIP: "192.168.1.60",
+		HostPort: "8037",
+		CaptureDir: "/home/kali/Desktop/Airodump_Captures/",
+		ServerCertFilePath: "/home/kali/Desktop/CovertPiKey/server.crt",
+		ServerKeyFilePath: "/home/kali/Desktop/CovertPiKey/server.key",
+	}
+
+	resultCovertPiConfig, err := ReadCovertPiConfigFile(confFilePath)
+	if err != nil {
+		t.Errorf("Test case 1 failed. Valid Conf File was not read successfully!")
+		return
+	}
+
+	if expectedCovertPiConfig.HostIP != resultCovertPiConfig.HostIP ||
+		expectedCovertPiConfig.HostPort != resultCovertPiConfig.HostPort ||
+		expectedCovertPiConfig.CaptureDir != resultCovertPiConfig.CaptureDir ||
+		expectedCovertPiConfig.ServerKeyFilePath != resultCovertPiConfig.ServerKeyFilePath ||
+		expectedCovertPiConfig.ServerCertFilePath != resultCovertPiConfig.ServerCertFilePath {
+			t.Errorf("Test case 1 failed. Expected Config: %v, Got: %v", expectedCovertPiConfig, resultCovertPiConfig)
+			return
+	}
+}
+
+func TestReadInValidConfigFile(t *testing.T) {
+	// Test Case 1
+	confFilePath := "/home/kali/Desktop/CovertPiServerDetails/covertpi_invalid.conf"
+
+	_, err := ReadCovertPiConfigFile(confFilePath)
+	if err == nil {
+		t.Errorf("Test case 1 failed. Valid Conf File was not read successfully!")
+		return
+	}
+}
+
+func TestGetConfFilePath(t *testing.T) {
+	// Test Case 1
+	expected := "/home/kali/Desktop/CovertPiServerDetails/covertpi.conf"
+	result, err := GetConfFilePath("kali")
+
+	if err != nil {
+		t.Errorf("Test case 1 failed. Desktop Directory Path Not Returned!")
+		return
+	}
+
+	if expected != result {
+		t.Errorf("Test case 1 failed. Expected Path: %v, Got: %v", expected, result)
+		return
+	}
+
+	// Test Case 2
+	expected = "/root/Desktop/CovertPiServerDetails/covertpi.conf"
+	result, err = GetConfFilePath("root")
+
+	if err != nil {
+		t.Errorf("Test case 2 failed. Desktop Directory Path Not Returned!")
+		return
+	}
+
+	if expected != result {
+		t.Errorf("Test case 2 failed. Expected Path: %v, Got: %v", expected, result)
 		return
 	}
 }
