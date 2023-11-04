@@ -2,6 +2,7 @@ package parsing
 
 import (
 	"testing"
+	"os"
 	"github.com/ArmanSandhu/CovertPi/internal/models"
 )
 
@@ -37,18 +38,20 @@ func TestValidRunJohnCommand(t *testing.T) {
 
 func TestInvalidRunJohnCommand(t *testing.T) {
 	// Test Case 1
+	_ = os.Remove("/root/.john/john.pot")
 	johnResult := models.John_Result{}
 	cmdSlices := []string{"john", "--wordlist=/usr/share/list/rockyou.txt", "/home/kali/Desktop/Airodump_Captures/secureRar.rar"}
-	expectedResult := "fail"
+	expectedResultSize := 0
 	RunJohnCommand(cmdSlices, &johnResult)
-	if johnResult.Result != expectedResult {
-		t.Errorf("Test case 1 failed. Expected: %v, Got: %v", expectedResult, johnResult.Result)
+	if len(johnResult.Passwords) != expectedResultSize {
+		t.Errorf("Test case 1 failed. Expected: %v, Got: %v", expectedResultSize, len(johnResult.Passwords))
 		return
 	}
 
 	// Test Case 2
 	johnResult = models.John_Result{}
 	cmdSlices = []string{"john", "--wordlist=/usr/share/wordlists/rockyou.txt", "/home/kali/Desktop/Airodump_Captures/secure.txt"}
+	expectedResult := "fail"
 	RunJohnCommand(cmdSlices, &johnResult)
 	if johnResult.Result != expectedResult {
 		t.Errorf("Test case 2 failed. Expected: %v, Got: %v", expectedResult, johnResult.Result)

@@ -15,8 +15,8 @@ func TestGetAirmonInterfaces(t *testing.T) {
 		t.Errorf("Test case 1 failed. Error: %s", err.Error())
 	}
 	airmonInterfaces := []models.Airmon_Interface{}
-	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Managed"}
-	wlan1 := models.Airmon_Interface{PHY: "phy1", Interface: "wlan1", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
+	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
+	wlan1 := models.Airmon_Interface{PHY: "phy2", Interface: "wlan1", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Managed"}
 	airmonInterfaces = append(airmonInterfaces, wlan0)
 	airmonInterfaces = append(airmonInterfaces, wlan1)
 	airmonResult := models.Airmon_Result{Airmon_Interfaces: airmonInterfaces, Result: "success", Details: "n/a"}
@@ -47,13 +47,13 @@ func TestCheckAirmon(t *testing.T) {
 
 func TestStartAirmonOnValid(t *testing.T) {
 	// Test Case 1
-	cmdOut, err := exec.Command("airmon-ng", "start", "wlan0").Output()
+	cmdOut, err := exec.Command("airmon-ng", "start", "wlan1").Output()
 	if err != nil {
 		t.Errorf("Test case 1 failed. Error: %s", err.Error())
 	}
 	airmonInterfaces := []models.Airmon_Interface{}
-	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Monitor"}
-	wlan1 := models.Airmon_Interface{PHY: "phy1", Interface: "wlan1", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
+	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
+	wlan1 := models.Airmon_Interface{PHY: "phy2", Interface: "wlan1", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Monitor"}
 	airmonInterfaces = append(airmonInterfaces, wlan0)
 	airmonInterfaces = append(airmonInterfaces, wlan1)
 
@@ -66,13 +66,13 @@ func TestStartAirmonOnValid(t *testing.T) {
 
 func TestStopAirmonOnValid(t *testing.T) {
 	// Test Case 1
-	cmdOut, err := exec.Command("airmon-ng", "stop", "wlan0").Output()
+	cmdOut, err := exec.Command("airmon-ng", "stop", "wlan1").Output()
 	if err != nil {
 		t.Errorf("Test case 1 failed. Error: %s", err.Error())
 	}
 	airmonInterfaces := []models.Airmon_Interface{}
-	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Managed"}
-	wlan1 := models.Airmon_Interface{PHY: "phy1", Interface: "wlan1", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
+	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
+	wlan1 := models.Airmon_Interface{PHY: "phy2", Interface: "wlan1", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Managed"}
 	airmonInterfaces = append(airmonInterfaces, wlan0)
 	airmonInterfaces = append(airmonInterfaces, wlan1)
 
@@ -85,15 +85,13 @@ func TestStopAirmonOnValid(t *testing.T) {
 
 func TestStartAirmonOnInValid(t *testing.T) {
 	// Test Case 1
-	cmdOut, err := exec.Command("airmon-ng", "start", "wlan1").Output()
+	cmdOut, err := exec.Command("airmon-ng", "start", "wlan0").Output()
 	if err == nil {
 		t.Errorf("Test case 1 failed. Error: %s", err.Error())
 	}
 	airmonInterfaces := []models.Airmon_Interface{}
-	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Managed"}
-	wlan1 := models.Airmon_Interface{PHY: "phy1", Interface: "wlan1", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
+	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
 	airmonInterfaces = append(airmonInterfaces, wlan0)
-	airmonInterfaces = append(airmonInterfaces, wlan1)
 
 
 	airmonResult := models.Airmon_Result{Airmon_Interfaces: airmonInterfaces, Result: "fail", Details: "ERROR adding monitor mode interface: command failed: Operation not supported (-95)\n"}
@@ -110,7 +108,7 @@ func TestStopAirmonOnInValid(t *testing.T) {
 		t.Errorf("Test case 1 failed. Error: %s", err.Error())
 	}
 	airmonInterfaces := []models.Airmon_Interface{}
-	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "88XXau", Chipset: "Realtek Semiconductor Corp. Realtek 8812AU/8821AU 802.11ac WLAN Adapter [USB Wireless Dual-Band Adapter 2.4/5Ghz]", Mode: "Managed"}
+	wlan0 := models.Airmon_Interface{PHY: "phy0", Interface: "wlan0", Driver: "brcmfmac", Chipset: "Broadcom 43430", Mode: "Managed"}
 	airmonInterfaces = append(airmonInterfaces, wlan0)
 
 	airmonResult := models.Airmon_Result{Airmon_Interfaces: airmonInterfaces, Result: "fail", Details: "You are trying to stop a device that isn't in monitor mode."}

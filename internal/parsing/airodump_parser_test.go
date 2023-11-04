@@ -73,19 +73,8 @@ func TestParseAirodumpOutputInValid(t *testing.T) {
 		airodumpResult.Message = strings.TrimSpace(stdout.String())
 	}
 
-	err = os.Rename("/home/kali/Desktop/Airodump_Captures/captured-01.csv", "/home/kali/Desktop/Airodump_Captures/captured.csv")
-	if err != nil {
-		t.Errorf("Test Case 1 failed. Error Renaming File: %v", err)
-		return
-	}
-
-	ParseAirodumpOutput(filepath, &airodumpResult)
 	expectedOutput := "fail"
 	if !reflect.DeepEqual(expectedOutput, airodumpResult.Result) {
 		t.Errorf("Test case 1 failed. Expected: %v, Got: %v", expectedOutput, airodumpResult.Result)
-	}
-
-	if len(airodumpResult.Airodump_APs) != 0 {
-		t.Errorf("Test case 1 failed. Num of APs found is %v. Should be 0", len(airodumpResult.Airodump_APs))
 	}
 }

@@ -115,14 +115,15 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 		if err != nil && err.Error() != "signal: killed"{
 			airodumpResult.Result = "fail"
 			airodumpResult.Message = strings.TrimSpace(stdout.String())
+		} else {
+			err = utils.RenameCaptureFiles(filename, directory, pattern)
+			if err != nil {
+				fmt.Println("Error: ", err.Error())
+				conn.Close()
+				return
+			}
+			ParseAirodumpOutput(fullFilePath + ".csv", &airodumpResult)
 		}
-		err = utils.RenameCaptureFiles(filename, directory, pattern)
-		if err != nil {
-			fmt.Println("Error: ", err.Error())
-			conn.Close()
-			return
-		}
-		ParseAirodumpOutput(fullFilePath + ".csv", &airodumpResult)
 		jsonRes, err = json.Marshal(airodumpResult)
 		if err != nil {
 			fmt.Println("Error: ", err.Error())
@@ -177,7 +178,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 
 		if strings.Contains(commandObj.Command, "GetCrackedPasswords") {
 			directory := cmdSlices[2]
-			fmt.Println("Get Previously Cracked Passwords in Directory: %s", directory)
+			fmt.Println("Get Previously Cracked Passwords in Directory: ", directory)
 			crckdPswds, details, err := GetAllCrckdPswdInDir(directory)
 			if err != nil {
 				johnResult.Result = "fail"
@@ -190,7 +191,7 @@ func RunCommand(conn net.Conn, commandObj models.Cmd, stopRoutineChannel chan st
 			}
 		} else if strings.Contains(commandObj.Command, "GetAvailableFilesForCracking") {
 			directory := cmdSlices[2]
-			fmt.Println("Get Available Files for Cracking in Directory: %s", directory)
+			fmt.Println("Get Available Files for Cracking in Directory: ", directory)
 			availableFiles, err := utils.GetAvailableFilesForCracking(directory)
 			if err != nil {
 				johnResult.Result = "fail"
